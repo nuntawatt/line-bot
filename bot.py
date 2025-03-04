@@ -40,26 +40,20 @@ def handle_message(event):
     user_id = event.source.user_id
     user_input = event.message.text.strip().lower()
 
-    if user_input in ["help", "ช่วยเหลือ", "วิธีใช้", "สอบถาม"]:
+    if user_input in ["เริ่มต้น"]:
         reply_text = (
-            "🔹 วิธีใช้ระบบพยากรณ์เบาหวาน\n"
-            "✅ เริ่มต้นใช้งานง่ายๆ แค่ทำตามนี้!\n"
-            "1️⃣ พิมพ์ 'ทำนาย' เพื่อเริ่มต้นการพยากรณ์\n"
-            "2️⃣ 🩺 ตอบค่าต่างๆ ที่บอทถามทีละข้อ เช่น น้ำตาลในเลือด, อินซูลิน ฯลฯ\n"
-            "3️⃣ ✍️ กรอกค่าต่างๆ ตามที่กำหนด (มีตัวอย่างให้ดูนะ!)\n"
-            "4️⃣ 📊 รับผลการพยากรณ์ ทันทีหลังจากกรอกครบ\n"
-            "🔄 อยากเริ่มใหม่? แค่พิมพ์ 'ยกเลิก' แล้วลองใหม่ได้เลย! 💙"
+            "👕 คำนวณไซส์เสื้อของคุณง่ายๆ ในไม่กี่ขั้นตอน!\n"
+            "✨ เพียงตอบคำถามสั้นๆ แล้วรับคำแนะนำไซส์ที่เหมาะกับคุณ\n"
+            "\n"
+            "🔹 วิธีใช้งาน:\n"
+            "1️⃣ กรอกข้อมูลพื้นฐาน ได้แก่ อายุ, ส่วนสูง และน้ำหนัก\n"
+            "2️⃣ รอระบบคำนวณไซส์ที่เหมาะสม\n"
+            "3️⃣ รับคำแนะนำไซส์เสื้อที่ตรงกับรูปร่างของคุณ\n"
+            "\n"
+            "💡 หากต้องการเริ่มใหม่ พิมพ์ 'ยกเลิก' ได้เลย!\n\n"
+            "📌 เริ่มเลย! กรุณากรอกอายุของคุณ (ปี) เช่น 25"
         )
-        reply_image = ImageSendMessage(
-            original_content_url="https://i.imgur.com/RO1qyeb.png",
-            preview_image_url="https://i.imgur.com/RO1qyeb.png"
-        )
-        line_bot_api.reply_message(event.reply_token, [TextSendMessage(text=reply_text), reply_image])
-        return
-
-    if user_input in ["prediction", "พยากรณ์", "ทำนาย", "predict", "predictions"]:
         user_sessions[user_id] = {"step": 1, "data": {}}
-        reply_text = "กรุณากรอกค่า Glucose (mg/dL) เช่น 120"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
         return
 
@@ -76,7 +70,7 @@ def handle_message(event):
         if "prediction" in result:
             reply_text = f"ผลลัพธ์: {result['prediction']}"
         else:
-            reply_text = f"Error: {result.get('error', 'ไม่สามารถพยากรณ์ได้')}"
+            reply_text = f"Error: {result.get('error', 'ไม่สามารถคำนวณได้')}"
 
         del user_sessions[user_id]  
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
@@ -84,7 +78,7 @@ def handle_message(event):
 
     if user_input == "ยกเลิก":
         del user_sessions[user_id]  
-        reply_text = "ข้อมูลถูกยกเลิก กรุณาเริ่มใหม่"
+        reply_text = "ข้อมูลถูกยกเลิกแล้ว หากต้องการเริ่มใหม่ให้กดปุ่ม เริ่มต้น ที่เมนู"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text)) 
         return
 
@@ -95,20 +89,20 @@ def handle_message(event):
         try:
             if step in [1, 2, 3]:  
                 if not re.match(r'^\d+(\.\d+)?$', user_input):
-                    reply_text = "กรุณากรอกเฉพาะค่าตัวเลขที่เป็นบวก เช่น 120"
+                    reply_text = "กรุณากรอกเฉพาะค่าตัวเลขที่เป็นบวก เช่น 25"
                     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
                     return
 
                 value = float(user_input)
 
                 if step == 1:
-                    session["data"]["Glucose"] = value
-                    reply_text = "กรุณากรอกค่า Insulin (μU/mL) เช่น 80"
+                    session["data"]["age"] = value
+                    reply_text = "กรุณากรอกส่วนสูงของคุณ (cm) เช่น 170"
                 elif step == 2:
-                    session["data"]["Insulin"] = value
-                    reply_text = "กรุณากรอกค่า BMI เช่น 25.5"
+                    session["data"]["height"] = value
+                    reply_text = "กรุณากรอกน้ำหนักของคุณ (kg) เช่น 65"
                 elif step == 3:
-                    session["data"]["BMI"] = value
+                    session["data"]["weight"] = value
                     summary_flex = create_summary_flex(session["data"])
                     line_bot_api.reply_message(event.reply_token, summary_flex)
                     return
@@ -131,60 +125,60 @@ def create_summary_flex(user_data):
         "body": {
             "type": "box",
             "layout": "vertical",
-            "backgroundColor": "#E3F2FD", 
+            "backgroundColor": "#E1F5FE",  # สีพื้นหลังอ่อนลงให้ดูสบายตา
             "cornerRadius": "md",
             "paddingAll": "lg",
             "contents": [
                 {
                     "type": "text",
-                    "text": "ข้อมูลของคุณ",
+                    "text": "ข้อมูลส่วนตัวของคุณ",
                     "weight": "bold",
                     "size": "xl",
-                    "color": "#1976D2",  
+                    "color": "#01579B",  # โทนสีน้ำเงินเข้มขึ้น
                     "align": "center"
                 },
                 {
                     "type": "separator",
                     "margin": "sm",
-                    "color": "#B0BEC5"
+                    "color": "#B3E5FC"
                 },
                 {
                     "type": "box",
                     "layout": "vertical",
                     "margin": "sm",
-                    "spacing": "xs",
+                    "spacing": "md",
                     "contents": [
                         {
                             "type": "text",
-                            "text": f"Glucose: {user_data['Glucose']} mm",
+                            "text": f"🌟 อายุ: {user_data['age']} ปี",
                             "size": "md",
-                            "color": "#37474F"
+                            "color": "#1E88E5"
                         },
                         {
                             "type": "text",
-                            "text": f"Insulin: {user_data['Insulin']} mm",
+                            "text": f"🌟 ส่วนสูง: {user_data['height']} ซม.",
                             "size": "md",
-                            "color": "#37474F"
+                            "color": "#1E88E5"
                         },
                         {
                             "type": "text",
-                            "text": f"BMI: {user_data['BMI']} mm",
+                            "text": f"🌟 น้ำหนัก: {user_data['weight']} กก.",
                             "size": "md",
-                            "color": "#37474F"
+                            "color": "#1E88E5"
                         },
                     ]
                 },
                 {
                     "type": "separator",
                     "margin": "sm",
-                    "color": "#B0BEC5"
+                    "color": "#B3E5FC"
                 },
                 {
                     "type": "text",
                     "text": "ข้อมูลของคุณถูกต้องหรือไม่?",
                     "margin": "sm",
                     "size": "md",
-                    "color": "#1976D2",
+                    "color": "#01579B",
                     "align": "center",
                     "weight": "bold"
                 }
@@ -192,34 +186,33 @@ def create_summary_flex(user_data):
         },
         "footer": {
             "type": "box",
-            "layout": "vertical",
-            "backgroundColor": "#BBDEFB",  
+            "layout": "horizontal",
+            "backgroundColor": "#B3E5FC",
             "cornerRadius": "md",
-            "paddingAll": "sm",
+            "paddingAll": "md",
+            "spacing": "sm",
             "contents": [
                 {
                     "type": "button",
                     "style": "primary",
-                    "color": "#42A5F5",
+                    "color": "#0288D1",
                     "action": {
                         "type": "message",
-                        "label": "ถูกต้อง",
+                        "label": "✅ ถูกต้อง",
                         "text": "ยืนยันข้อมูล"
                     },
-                    "height": "sm",
-                    "margin": "none"
+                    "height": "sm"
                 },
                 {
                     "type": "button",
                     "style": "secondary",
-                    "color": "#90A4AE",
+                    "color": "#78909C",
                     "action": {
                         "type": "message",
-                        "label": "ยกเลิก",
+                        "label": "⛔ ยกเลิก",
                         "text": "ยกเลิก"
                     },
-                    "height": "sm",
-                    "margin": "md"
+                    "height": "sm"
                 }
             ]
         }
