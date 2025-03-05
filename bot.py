@@ -46,12 +46,12 @@ def handle_message(event):
             "✨ เพียงตอบคำถามสั้นๆ แล้วรับคำแนะนำไซส์ที่เหมาะกับคุณ\n"
             "\n"
             "🔹 วิธีใช้งาน:\n"
-            "1️⃣ กรอกข้อมูลพื้นฐาน ได้แก่ อายุ, ส่วนสูง และน้ำหนัก\n"
+            "1️⃣ กรอกข้อมูลพื้นฐาน ได้แก่ น้ำหนัก, อายุ และส่วนสูง\n"
             "2️⃣ รอระบบคำนวณไซส์ที่เหมาะสม\n"
             "3️⃣ รับคำแนะนำไซส์เสื้อที่ตรงกับรูปร่างของคุณ\n"
             "\n"
             "💡 หากต้องการเริ่มใหม่ พิมพ์ 'ยกเลิก' ได้เลย!\n\n"
-            "📌 เริ่มเลย! กรุณากรอกอายุของคุณ (ปี) เช่น 25"
+            "📌 เริ่มเลย! กรุณากรอกน้ำหนักของคุณ (kg) เช่น 65"
         )
         user_sessions[user_id] = {"step": 1, "data": {}}
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
@@ -96,13 +96,13 @@ def handle_message(event):
                 value = float(user_input)
 
                 if step == 1:
+                    session["data"]["weight"] = value
+                    reply_text = "กรุณากรอกอายุของคุณ (ปี) เช่น 25"
+                elif step == 2:
                     session["data"]["age"] = value
                     reply_text = "กรุณากรอกส่วนสูงของคุณ (cm) เช่น 170"
-                elif step == 2:
-                    session["data"]["height"] = value
-                    reply_text = "กรุณากรอกน้ำหนักของคุณ (kg) เช่น 65"
                 elif step == 3:
-                    session["data"]["weight"] = value
+                    session["data"]["height"] = value
                     summary_flex = create_summary_flex(session["data"])
                     line_bot_api.reply_message(event.reply_token, summary_flex)
                     return
@@ -117,7 +117,6 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
         return
 
-
 def create_summary_flex(user_data):
     flex_message = {
         "type": "bubble",
@@ -125,7 +124,7 @@ def create_summary_flex(user_data):
         "body": {
             "type": "box",
             "layout": "vertical",
-            "backgroundColor": "#E1F5FE",  # สีพื้นหลังอ่อนลงให้ดูสบายตา
+            "backgroundColor": "#E1F5FE",
             "cornerRadius": "md",
             "paddingAll": "lg",
             "contents": [
@@ -134,7 +133,7 @@ def create_summary_flex(user_data):
                     "text": "ข้อมูลส่วนตัวของคุณ",
                     "weight": "bold",
                     "size": "xl",
-                    "color": "#01579B",  # โทนสีน้ำเงินเข้มขึ้น
+                    "color": "#01579B",
                     "align": "center"
                 },
                 {
@@ -150,7 +149,7 @@ def create_summary_flex(user_data):
                     "contents": [
                         {
                             "type": "text",
-                            "text": f"🌟 ส่วนสูง: {user_data['height']} ซม.",
+                            "text": f"🌟 น้ำหนัก: {user_data['weight']} กก.",
                             "size": "md",
                             "color": "#1E88E5"
                         },
@@ -162,62 +161,16 @@ def create_summary_flex(user_data):
                         },
                         {
                             "type": "text",
-                            "text": f"🌟 น้ำหนัก: {user_data['weight']} กก.",
+                            "text": f"🌟 ส่วนสูง: {user_data['height']} ซม.",
                             "size": "md",
                             "color": "#1E88E5"
-                        },
+                        }
                     ]
-                },
-                {
-                    "type": "separator",
-                    "margin": "sm",
-                    "color": "#B3E5FC"
-                },
-                {
-                    "type": "text",
-                    "text": "ข้อมูลของคุณถูกต้องหรือไม่?",
-                    "margin": "sm",
-                    "size": "md",
-                    "color": "#01579B",
-                    "align": "center",
-                    "weight": "bold"
-                }
-            ]
-        },
-        "footer": {
-            "type": "box",
-            "layout": "horizontal",
-            "backgroundColor": "#B3E5FC",
-            "cornerRadius": "md",
-            "paddingAll": "md",
-            "spacing": "sm",
-            "contents": [
-                {
-                    "type": "button",
-                    "style": "primary",
-                    "color": "#0288D1",
-                    "action": {
-                        "type": "message",
-                        "label": "✅ ถูกต้อง",
-                        "text": "ยืนยันข้อมูล"
-                    },
-                    "height": "sm"
-                },
-                {
-                    "type": "button",
-                    "style": "secondary",
-                    "color": "#78909C",
-                    "action": {
-                        "type": "message",
-                        "label": "⛔ ยกเลิก",
-                        "text": "ยกเลิก"
-                    },
-                    "height": "sm"
                 }
             ]
         }
     }
-    return FlexSendMessage(alt_text="สรุปข้อมูลของคุณ: ", contents=flex_message)
+    return FlexSendMessage(alt_text="สรุปข้อมูลของคุณ", contents=flex_message)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
