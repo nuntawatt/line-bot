@@ -164,13 +164,59 @@ def create_summary_flex(user_data):
                             "text": f"🌟 ส่วนสูง: {user_data['height']} ซม.",
                             "size": "md",
                             "color": "#1E88E5"
-                        }
+                       },
                     ]
+                },
+                {
+                    "type": "separator",
+                    "margin": "sm",
+                    "color": "#B3E5FC"
+                },
+                {
+                    "type": "text",
+                    "text": "ข้อมูลของคุณถูกต้องหรือไม่?",
+                    "margin": "sm",
+                    "size": "md",
+                    "color": "#01579B",
+                    "align": "center",
+                    "weight": "bold"
+                }
+            ]
+        },
+        "footer": {
+            "type": "box",
+            "layout": "horizontal",
+            "backgroundColor": "#B3E5FC",
+            "cornerRadius": "md",
+            "paddingAll": "md",
+            "spacing": "sm",
+            "contents": [
+                {
+                    "type": "button",
+                    "style": "primary",
+                    "color": "#0288D1",
+                    "action": {
+                        "type": "message",
+                        "label": "✅ ถูกต้อง",
+                        "text": "ยืนยันข้อมูล"
+                    },
+                    "height": "sm"
+                },
+                {
+                    "type": "button",
+                    "style": "secondary",
+                    "color": "#78909C",
+                    "action": {
+                        "type": "message",
+                        "label": "⛔ ยกเลิก",
+                        "text": "ยกเลิก"
+                    },
+                    "height": "sm"
                 }
             ]
         }
     }
-    return FlexSendMessage(alt_text="สรุปข้อมูลของคุณ", contents=flex_message)
+    return FlexSendMessage(alt_text="สรุปข้อมูลของคุณ: ", contents=flex_message)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
